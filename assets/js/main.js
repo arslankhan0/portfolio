@@ -226,4 +226,51 @@
   window.addEventListener('load', navmenuScrollspy);
   document.addEventListener('scroll', navmenuScrollspy);
 
+  /**
+   * Load More Portfolio Items
+   */
+  if (document.getElementById('load-more-btn')) {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+
+    loadMoreBtn.addEventListener('click', function() {
+      const hiddenItems = document.querySelectorAll('.portfolio-item-hidden');
+      const batchSize = 3; // Load 3 items at a time
+      const itemsToShow = Array.from(hiddenItems).slice(0, batchSize);
+
+      if (itemsToShow.length === 0) return;
+
+      itemsToShow.forEach(item => {
+        const img = item.querySelector('img');
+        if (img && img.dataset.src) {
+          img.src = img.dataset.src;
+          // Clean up data attribute
+          img.removeAttribute('data-src');
+        }
+        // Remove hidden classes and add isotope-item class
+        item.classList.remove('d-none', 'portfolio-item-hidden');
+        item.classList.add('isotope-item');
+      });
+
+      const isotopeContainer = document.querySelector('.isotope-container');
+      
+      // Wait for images to load before appending to Isotope to ensure correct layout
+      imagesLoaded(isotopeContainer, function() {
+        const iso = Isotope.data(isotopeContainer);
+        if (iso) {
+          iso.appended(itemsToShow);
+          // Optional: Re-arrange if a filter is active
+          // check if active filter exists
+          const activeFilter = document.querySelector('.portfolio-filters .filter-active');
+          const filterValue = activeFilter ? activeFilter.getAttribute('data-filter') : '*';
+          iso.arrange({ filter: filterValue });
+        }
+      });
+
+      // Hide button if no more hidden items
+      if (document.querySelectorAll('.portfolio-item-hidden').length === 0) {
+        loadMoreBtn.style.display = 'none';
+      }
+    });
+  }
+
 })();
