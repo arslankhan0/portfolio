@@ -22,12 +22,31 @@
   headerToggleBtn.addEventListener('click', headerToggle);
 
   /**
-   * Hide mobile nav on same-page/hash links
+   * Hide mobile nav on same-page/hash links and handle tab switching
    */
   document.querySelectorAll('#navmenu a').forEach(navmenu => {
-    navmenu.addEventListener('click', () => {
+    navmenu.addEventListener('click', (e) => {
       if (document.querySelector('.header-show')) {
         headerToggle();
+      }
+      
+      if (navmenu.hash) {
+        let section = document.querySelector(navmenu.hash);
+        if (section) {
+          let tabPane = section.closest('.tab-pane');
+          if (tabPane && !tabPane.classList.contains('active')) {
+            e.preventDefault();
+            let tabBtn = document.querySelector(`button[data-bs-target="#${tabPane.id}"]`);
+            if (tabBtn) tabBtn.click();
+            setTimeout(() => {
+              let scrollMarginTop = getComputedStyle(section).scrollMarginTop || 0;
+              window.scrollTo({
+                top: section.offsetTop - parseInt(scrollMarginTop),
+                behavior: 'smooth'
+              });
+            }, 300);
+          }
+        }
       }
     });
 
@@ -191,10 +210,15 @@
    */
   window.addEventListener('load', function (e) {
     if (window.location.hash) {
-      if (document.querySelector(window.location.hash)) {
+      let section = document.querySelector(window.location.hash);
+      if (section) {
+        let tabPane = section.closest('.tab-pane');
+        if (tabPane && !tabPane.classList.contains('active')) {
+          let tabBtn = document.querySelector(`button[data-bs-target="#${tabPane.id}"]`);
+          if (tabBtn) tabBtn.click();
+        }
         setTimeout(() => {
-          let section = document.querySelector(window.location.hash);
-          let scrollMarginTop = getComputedStyle(section).scrollMarginTop;
+          let scrollMarginTop = getComputedStyle(section).scrollMarginTop || 0;
           window.scrollTo({
             top: section.offsetTop - parseInt(scrollMarginTop),
             behavior: 'smooth'
@@ -213,7 +237,7 @@
     navmenulinks.forEach(navmenulink => {
       if (!navmenulink.hash) return;
       let section = document.querySelector(navmenulink.hash);
-      if (!section) return;
+      if (!section || section.offsetParent === null) return;
       let position = window.scrollY + 200;
       if (position >= section.offsetTop && position <= (section.offsetTop + section.offsetHeight)) {
         document.querySelectorAll('.navmenu a.active').forEach(link => link.classList.remove('active'));
